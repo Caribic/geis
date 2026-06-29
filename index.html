@@ -20,7 +20,6 @@
 
     <header class="bg-white text-slate-900 p-4 shadow-sm sticky top-0 z-10 border-b-4 border-[#96c11f] flex justify-between items-center">
         <div class="flex items-center gap-3">
-            <!-- Tlačítko Zpět (zobrazuje se pouze, pokud nejsme na hlavní mřížce) -->
             <button id="backButton" onclick="handleBack()" class="hidden items-center justify-center bg-gray-100 hover:bg-gray-200 text-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all gap-1 shadow-sm active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
@@ -189,14 +188,29 @@
             renderCounterTab();
         }
 
-        // Změněno na hash směrování
         function openDetails(targetId) {
             window.location.hash = `counter/details/${targetId}`;
         }
 
-        // Změněno na hash směrování
         function closeDetails() {
             window.location.hash = 'counter';
+        }
+
+        // NOVÁ FUNKCE PRO SMAZÁNÍ ZÁZNAMU (STORNO)
+        function stornoNakladky(pickupId) {
+            let pickups = JSON.parse(localStorage.getItem('pickups')) || [];
+            
+            // Najdeme záznam, který chceme smazat podle unikátního ID
+            const index = pickups.findIndex(p => p.id === pickupId);
+            if (index === -1) return;
+
+            // Smažeme záznam
+            pickups.splice(index, 1);
+            localStorage.setItem('pickups', JSON.stringify(pickups));
+
+            // Překreslíme obrazovku (mřížku i detail, aby se palety hned vrátily)
+            renderCounterTab();
+            renderModalContent();
         }
 
         function renderModalContent() {
@@ -257,13 +271,19 @@
 
             const historyContainer = document.getElementById('modalHistoryContainer');
             let historyHtml = '';
+            
+            // AKTUALIZOVÁNO: Zde se nyní generuje řádek včetně tlačítka X
             tPickups.forEach(p => {
                 historyHtml += `
                 <div class="flex justify-between items-center text-xs bg-white p-2.5 rounded-lg border border-gray-200 shadow-sm">
-                    <span class="font-bold text-slate-800">${p.driver}</span>
-                    <span class="text-gray-500">Odvezl: <b class="text-slate-800">${p.fp} FP</b> | <b class="text-slate-800">${p.kh} KH</b></span>
+                    <div>
+                        <span class="font-bold text-slate-800 block">${p.driver}</span>
+                        <span class="text-gray-500">Odvezl: <b class="text-slate-800">${p.fp} FP</b> | <b class="text-slate-800">${p.kh} KH</b></span>
+                    </div>
+                    <button onclick="stornoNakladky('${p.id}')" class="text-red-500 font-bold text-lg px-3 py-1 hover:bg-red-50 active:bg-red-100 rounded-lg transition-colors">✕</button>
                 </div>`;
             });
+            
             historyContainer.innerHTML = historyHtml || '<p class="text-xs text-gray-400 italic text-center py-2">Dnes zatím žádný řidič neodebíral.</p>';
         }
 
@@ -479,13 +499,11 @@
             }
         }
 
-        // Tlačítko dole v navigaci nyní pouze změní Hash v URL
         function switchTab(tabId, event) {
             if (event) event.preventDefault();
             window.location.hash = tabId;
         }
 
-        // Interní vykreslení tabů na základě stavu
         function setActiveTab(tabId) {
             document.getElementById('tab-counter').className = 'hidden-tab';
             document.getElementById('tab-stats').className = 'hidden-tab';
@@ -511,12 +529,10 @@
             if(tabId === 'settings') renderSettingsTab();
         }
 
-        // Router, který naslouchá na změny v URL (zajišťuje správný zpětný chod)
         function handleRouting() {
             const hash = window.location.hash || '#counter';
             const backBtn = document.getElementById('backButton');
             
-            // Pokud hash neobsahuje detaily, skryjeme modální okno
             if (!hash.startsWith('#counter/details/')) {
                 currentTargetId = null;
                 document.getElementById('detailsModal').classList.remove('flex');
@@ -536,7 +552,6 @@
                 backBtn.classList.remove('hidden');
                 backBtn.classList.add('flex');
             } else if (hash.startsWith('#counter/details/')) {
-                // Modální okno se chová jako pod-stránka mřížky
                 setActiveTab('counter');
                 backBtn.classList.remove('hidden');
                 backBtn.classList.add('flex');
@@ -549,7 +564,6 @@
             }
         }
 
-        // Obsluha tlačítka Zpět
         function handleBack() {
             if (window.history.length > 1) {
                 window.history.back();
@@ -558,7 +572,6 @@
             }
         }
 
-        // Inicializace směrování a naplnění nastavení
         renderSettingsTab();
         
         window.addEventListener('hashchange', handleRouting);
