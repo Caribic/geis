@@ -1,62 +1,74 @@
-<header class="bg-white p-4 shadow-sm border-b-4 border-[#96c11f]">
-    <div class="flex justify-between items-center mb-2">
-        <img src="geis-logo.png" class="h-6" alt="Geis">
-        <input type="date" id="datePicker" class="hidden" onchange="jumpToDate(this.value)">
-        <button onclick="document.getElementById('datePicker').showPicker()" class="text-xl">📅</button>
-    </div>
-    <div class="flex justify-between items-center">
-        <button onclick="changeDay(-1)" class="font-bold p-2">◀</button>
-        <h1 id="currentDateDisplay" class="font-bold text-sm uppercase"></h1>
-        <button onclick="changeDay(1)" class="font-bold p-2">▶</button>
-    </div>
-</header>
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geis - Dispečink</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
 
-<button onclick="undoLastAction()" class="w-full bg-red-50 text-red-600 text-[10px] font-bold py-1 rounded border border-red-200 mb-2">↶ ZPĚT (Smazat poslední nakládku)</button>
+    <header class="bg-white p-4 shadow rounded mb-4 border-b-4 border-[#96c11f]">
+        <div class="flex justify-between items-center mb-2">
+            <h1 class="font-black">Geis Dispečink</h1>
+            <button onclick="document.getElementById('datePicker').showPicker()">📅</button>
+            <input type="date" id="datePicker" class="hidden" onchange="jumpToDate(this.value)">
+        </div>
+        <div class="flex justify-between items-center">
+            <button onclick="changeDay(-1)" class="bg-gray-200 px-3 py-1 rounded">◀</button>
+            <span id="currentDateDisplay" class="font-bold"></span>
+            <button onclick="changeDay(1)" class="bg-gray-200 px-3 py-1 rounded">▶</button>
+        </div>
+    </header>
 
-<script>
-    let currentDate = new Date(); // Místo původního 'today'
+    <button onclick="undoLastAction()" class="w-full bg-red-100 text-red-700 py-2 rounded mb-4 font-bold text-sm">↶ ZPĚT (Undo)</button>
 
-    function updateDateDisplay() {
-        document.getElementById('currentDateDisplay').textContent = currentDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long' });
-        renderCounterTab();
-    }
+    <div id="activeCountersList" class="grid grid-cols-2 gap-3"></div>
 
-    function changeDay(offset) {
-        currentDate.setDate(currentDate.getDate() + offset);
+    <script>
+        let currentDate = new Date();
+
+        // 1. ZÁKLADNÍ FUNKCE PRO DATUM
+        function updateDateDisplay() {
+            document.getElementById('currentDateDisplay').textContent = currentDate.toLocaleDateString('cs-CZ');
+            renderCounterTab();
+        }
+
+        function changeDay(offset) {
+            currentDate.setDate(currentDate.getDate() + offset);
+            updateDateDisplay();
+        }
+
+        function jumpToDate(dateStr) {
+            currentDate = new Date(dateStr);
+            updateDateDisplay();
+        }
+
+        // 2. FUNKCE PRO "ZPĚT"
+        function undoLastAction() {
+            let pickups = JSON.parse(localStorage.getItem('pickups') || '[]');
+            if (pickups.length > 0) {
+                if(confirm("Smazat poslední záznam?")) {
+                    pickups.pop();
+                    localStorage.setItem('pickups', JSON.stringify(pickups));
+                    renderCounterTab();
+                }
+            }
+        }
+
+        // 3. HLAVNÍ RENDER FUNKCE (Tato zde nesmí chybět!)
+        function renderCounterTab() {
+            const container = document.getElementById('activeCountersList');
+            container.innerHTML = '<p class="text-gray-500">Načítám data...</p>';
+            
+            // Tady by byla logika pro zobrazení vašich zákazníků
+            // Pro začátek jen test:
+            container.innerHTML = '<div class="bg-white p-4 rounded shadow">Zákazník test</div>';
+            console.log("Renderování proběhlo");
+        }
+
+        // Inicializace
         updateDateDisplay();
-    }
-
-    function jumpToDate(dateStr) {
-        currentDate = new Date(dateStr);
-        updateDateDisplay();
-    }
-
-    // PŘEPISOVAT FUNKCI: getTodayStr by nyní měla vracet formátované datum z currentDate
-    const getTodayStr = () => currentDate.toISOString().split('T')[0];
-
-    function undoLastAction() {
-        if(!confirm("Opravdu smazat poslední zapsanou nakládku?")) return;
-        let pickups = JSON.parse(localStorage.getItem('pickups')) || [];
-        pickups.pop(); // Smaže poslední prvek
-        localStorage.setItem('pickups', JSON.stringify(pickups));
-        renderCounterTab();
-    }
-
-    // PŘEPISOVAT FUNKCI: renderModalContent (doplnit tlačítko smazat k historii)
-    // Uvnitř cyklu tPickups.forEach přidej:
-    /*
-    historyHtml += `
-        <div class="flex justify-between items-center text-xs bg-white p-2.5 rounded-lg border border-gray-200">
-            <span>${p.driver}: ${p.fp} FP | ${p.kh} KH</span>
-            <button onclick="deletePickup('${p.id}')" class="text-red-500 font-bold">✕</button>
-        </div>`;
-    */
-
-    function deletePickup(pickupId) {
-        let pickups = JSON.parse(localStorage.getItem('pickups')) || [];
-        pickups = pickups.filter(p => p.id !== pickupId);
-        localStorage.setItem('pickups', JSON.stringify(pickups));
-        renderModalContent(); // Aktualizuje modál
-        renderCounterTab();   // Aktualizuje hlavní mřížku
-    }
-</script>
+    </script>
+</body>
+</html>
