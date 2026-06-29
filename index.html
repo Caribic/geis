@@ -5,369 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEIS SVOZY</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#f4f4f4">
+    <link class="js-manifest" rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#76c00e">
 
-    <style>
-        /* --- ZÁKLADNÍ STYLY A DESIGN GEIS --- */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 10px;
-        }
-
-        .modal-svoz {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            max-width: 450px;
-            margin: 0 auto;
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background-color: #ffffff;
-            color: #212529;
-            padding: 15px;
-            position: relative;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .modal-header h2 { 
-            margin: 0; 
-            font-size: 1.4rem; 
-            letter-spacing: 0.5px;
-        }
-        
-        .modal-header p { 
-            margin: 5px 0 0 0; 
-            font-size: 0.9rem; 
-            color: #6c757d; 
-        }
-
-        .btn-close {
-            position: absolute; 
-            top: 15px; 
-            right: 15px;
-            background: #e9ecef; 
-            border: none; 
-            color: #212529; 
-            font-size: 1.2rem; 
-            font-weight: bold;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-body { 
-            padding: 15px; 
-        }
-
-        /* Stav zbývajících palet */
-        .stav-palet-container {
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 20px;
-        }
-
-        .stav-box {
-            flex: 1; 
-            background: #f8f9fa; 
-            border: 2px solid #ced4da;
-            border-radius: 8px; 
-            text-align: center; 
-            padding: 12px 5px;
-        }
-
-        .stav-label { 
-            display: block; 
-            font-size: 0.75rem; 
-            font-weight: bold; 
-            color: #6c757d; 
-            margin-bottom: 5px;
-        }
-        
-        .stav-cislo { 
-            display: block; 
-            font-size: 2rem; 
-            font-weight: bold; 
-            color: #212529; 
-        }
-
-        /* Formulář nakládky */
-        .form-nakladka { 
-            margin-bottom: 25px; 
-        }
-        
-        .form-nakladka label { 
-            display: block; 
-            font-size: 0.8rem; 
-            font-weight: bold; 
-            color: #495057; 
-            margin-bottom: 8px; 
-        }
-
-        .form-row { 
-            display: flex; 
-            gap: 8px; 
-            margin-bottom: 12px; 
-        }
-        
-        .form-row select, .form-row input {
-            flex: 1; 
-            padding: 12px 5px; 
-            border: 1px solid #ced4da; 
-            border-radius: 6px; 
-            font-size: 1rem; 
-            text-align: center;
-            background-color: #fff;
-        }
-        
-        .form-row select { 
-            text-align-last: center; 
-        }
-
-        .btn-submit {
-            width: 100%; 
-            background-color: #5cb85c; /* Zelené tlačítko podle videa Geis */
-            color: white; 
-            border: none;
-            padding: 14px; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            font-size: 1rem; 
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .btn-submit:active {
-            background-color: #4cae4c;
-        }
-
-        /* Sekce historie nakládek */
-        .historie-sekce h3 { 
-            font-size: 0.8rem; 
-            color: #6c757d; 
-            margin-bottom: 12px; 
-            letter-spacing: 0.3px;
-        }
-
-        .historie-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        .historie-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .driver-name { 
-            font-weight: bold; 
-            color: #212529; 
-            font-size: 1.05rem;
-        }
-        
-        .load-info { 
-            font-size: 0.85rem; 
-            color: #495057; 
-        }
-
-        /* NOVÉ: Vylepšené storno tlačítko pro mobilní telefony */
-        .btn-storno {
-            background: none;
-            border: none;
-            color: #dc3545; /* Červená barva pro smazání */
-            font-size: 1.5rem;
-            font-weight: bold;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 50%;
-            transition: background-color 0.2s;
-        }
-
-        .btn-storno:active {
-            background-color: rgba(220, 53, 69, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="modal-svoz">
-        <div class="modal-header">
-            <h2>WIMEX</h2>
-            <p>Plán svozu: FP: 45 | KH: 0</p>
-            <button class="btn-close" aria-label="Zavřít">×</button>
+    <header class="app-header">
+        <div class="header-left">
+            <img src="geis-logo.png" alt="Geis" class="logo">
+            <span class="app-title">GEIS SVOZY</span>
         </div>
+        <div class="current-date" id="dnesni-datum">PONDĚLÍ 29. ČERVNA 2026</div>
+    </header>
 
-        <div class="modal-body">
-            <div class="stav-palet-container">
-                <div class="stav-box">
-                    <span class="stav-label">ZBÝVÁ ODVÉZT FP</span>
-                    <span class="stav-cislo" id="zbyva-fp">30</span>
+    <main class="content">
+        <section class="sekce-aktivace">
+            <h3>AKTIVOVAT ZÁKAZNÍKA PRO DNEŠNÍ DEN</h3>
+            <div class="card-form">
+                <label for="main-select-zakaznik">ZÁKAZNÍK</label>
+                <select id="main-select-zakaznik">
+                    <option value="WIMEX">WIMEX</option>
+                </select>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>CÍL FP</label>
+                        <input type="number" id="main-cil-fp" value="0" min="0" inputmode="numeric">
+                    </div>
+                    <div class="input-group">
+                        <label>CÍL KH</label>
+                        <input type="number" id="main-cil-kh" value="0" min="0" inputmode="numeric">
+                    </div>
                 </div>
-                <div class="stav-box">
-                    <span class="stav-label">ZBÝVÁ ODVÉZT KH</span>
-                    <span class="stav-cislo" id="zbyva-kh">0</span>
-                </div>
-            </div>
-
-            <div class="form-nakladka">
-                <label>ZAPSAT NAKLÁDKU ŘIDIČE</label>
-                <div class="form-row">
-                    <select id="select-ridic">
-                        <option value="KINDA">KINDA</option>
-                        <option value="DVOŘÁK">DVOŘÁK</option>
-                        <option value="PUTERKA">PUTERKA</option>
-                        <option value="VRABEC">VRABEC</option>
-                        <option value="DOLEŽAL">DOLEŽAL</option>
-                        <option value="KŘÍŽ">KŘÍŽ</option>
-                        <option value="DUŽDA">DUŽDA</option>
-                        <option value="VAŇÁTKO">VAŇÁTKO</option>
-                        <option value="DAVID">DAVID</option>
-                        <option value="BAŽANT">BAŽANT</option>
-                        <option value="KLEIN">KLEIN</option>
-                    </select>
-                    <input type="number" id="input-fp" placeholder="0" min="0" inputmode="numeric">
-                    <input type="number" id="input-kh" placeholder="0" min="0" inputmode="numeric">
-                </div>
-                <button type="button" class="btn-submit" onclick="potvrditNakladku()">
-                    Potvrdit naložení a odečíst
+                
+                <button type="button" class="btn-aktivovat" onclick="aktivovatZakaznika()">
+                    Přidat na přehled svozu
                 </button>
             </div>
+        </section>
 
-            <div class="historie-sekce">
-                <h3>HISTORIE DNEŠNÍCH NAKLÁDEK VOZIDEL:</h3>
-                <div id="historie-list">
+        <section class="sekce-sledovani">
+            <h3>DNEŠNÍ ACTIVE SLEDOVÁNÍ ODBĚRU</h3>
+            <div id="zakaznici-list">
+                </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active">
+            <span class="nav-icon">⚃</span>
+            <span class="nav-label">Mřížka</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">📊</span>
+            <span class="nav-label">Statistiky</span>
+        </div>
+        <div class="nav-item">
+            <span class="nav-icon">⚙</span>
+            <span class="nav-label">Nastavení</span>
+        </div>
+    </nav>
+
+    <div class="modal-backdrop" id="modal-backdrop" style="display: none;">
+        <div class="modal-svoz">
+            <div class="modal-header">
+                <h2 id="modal-zakaznik-nazev">WIMEX</h2>
+                <p id="modal-plan-info">Plán svozu: FP: 45 | KH: 0</p>
+                <button type="button" class="btn-close" onclick="zavritModal()" aria-label="Zavřít">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="stav-palet-container">
+                    <div class="stav-box">
+                        <span class="stav-label">ZBÝVÁ ODVÉZT FP</span>
+                        <span class="stav-cislo" id="zbyva-fp">30</span>
                     </div>
+                    <div class="stav-box">
+                        <span class="stav-label">ZBÝVÁ ODVÉZT KH</span>
+                        <span class="stav-cislo" id="zbyva-kh">0</span>
+                    </div>
+                </div>
+
+                <div class="form-nakladka">
+                    <label>ZAPSAT NAKLÁDKU ŘIDIČE</label>
+                    <div class="form-row">
+                        <select id="select-ridic">
+                            <option value="KINDA">KINDA</option>
+                            <option value="DVOŘÁK">DVOŘÁK</option>
+                            <option value="PUTERKA">PUTERKA</option>
+                            <option value="VRABEC">VRABEC</option>
+                            <option value="DOLEŽAL">DOLEŽAL</option>
+                            <option value="KŘÍŽ">KŘÍŽ</option>
+                            <option value="DUŽDA">DUŽDA</option>
+                            <option value="VAŇÁTKO">VAŇÁTKO</option>
+                            <option value="DAVID">DAVID</option>
+                            <option value="BAŽANT">BAŽANT</option>
+                            <option value="KLEIN">KLEIN</option>
+                        </select>
+                        <input type="number" id="input-fp" placeholder="0" min="0" inputmode="numeric">
+                        <input type="number" id="input-kh" placeholder="0" min="0" inputmode="numeric">
+                    </div>
+                    <button type="button" class="btn-submit" onclick="potvrditNakladku()">
+                        Potvrdit naložení a odečíst
+                    </button>
+                </div>
+
+                <div class="historie-sekce">
+                    <h3>HISTORIE DNEŠNÍCH NAKLÁDEK VOZIDEL:</h3>
+                    <div id="historie-list">
+                        </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Globální stav aplikace
-        let dataSvozu = {
-            zbyvaFP: 30,
-            zbyvaKH: 0
-        };
-
-        // Výchozí pole historie
-        let historieNakladek = [
-            { ridic: "KINDA", fp: 15, kh: 0 }
-        ];
-
-        // 1. VYKRESLENÍ AKTIVNÍCH DAT DO STRÁNKY
-        function aktualizovatUI() {
-            document.getElementById('zbyva-fp').innerText = dataSvozu.zbyvaFP;
-            document.getElementById('zbyva-kh').innerText = dataSvozu.zbyvaKH;
-
-            const container = document.getElementById('historie-list');
-            container.innerHTML = '';
-
-            // Generování řádků historie včetně indexovaného storno tlačítka
-            historieNakladek.forEach((polozka, index) => {
-                const row = document.createElement('div');
-                row.className = 'historie-row';
-                row.innerHTML = `
-                    <div class="historie-info">
-                        <span class="driver-name">${polozka.ridic}</span>
-                        <span class="load-info">Odvezeno: ${polozka.fp} FP | ${polozka.kh} KH</span>
-                    </div>
-                    <button class="btn-storno" onclick="stornoNakladky(${index})" aria-label="Stornovat nakládku">
-                        ×
-                    </button>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        // 2. POTVRZENÍ NAKLÁDKY A ODEČTENÍ
-        function potvrditNakladku() {
-            const ridic = document.getElementById('select-ridic').value;
-            const fp = parseInt(document.getElementById('input-fp').value) || 0;
-            const kh = parseInt(document.getElementById('input-kh').value) || 0;
-
-            if (fp === 0 && kh === 0) {
-                alert('Zadejte prosím množství palet k odečtení.');
-                return;
-            }
-
-            // Odečtení z celkového zbývajícího plánu
-            dataSvozu.zbyvaFP -= fp;
-            dataSvozu.zbyvaKH -= kh;
-
-            // Vložení na začátek pole historie (nejnovější nahoře)
-            historieNakladek.unshift({ ridic, fp, kh });
-
-            // Vyčištění políček formuláře pro další zápis
-            document.getElementById('input-fp').value = '';
-            document.getElementById('input-kh').value = '';
-
-            aktualizovatUI();
-            ulozitDoLocalStorage();
-        }
-
-        // 3. FUNKCE STORNA (Smazání záznamu a vrácení hodnot)
-        function stornoNakladky(index) {
-            if (index < 0 || index >= historieNakladek.length) return;
-
-            // Načtení dat mazané položky
-            const stornovanaPolozka = historieNakladek[index];
-
-            // PŘIČTENÍ HODNOT ZPĚT DO PLÁNU
-            dataSvozu.zbyvaFP += stornovanaPolozka.fp;
-            dataSvozu.zbyvaKH += stornovanaPolozka.kh;
-
-            // Vymazání záznamu z pole historie
-            historieNakladek.splice(index, 1);
-
-            // Obnova zobrazení a uložení stavu
-            aktualizovatUI();
-            ulozitDoLocalStorage();
-        }
-
-        // 4. PERSISTENCE DATA (LocalStorage pro PWA aplikaci)
-        function ulozitDoLocalStorage() {
-            localStorage.setItem('geis_zbyvaFP', dataSvozu.zbyvaFP);
-            localStorage.setItem('geis_zbyvaKH', dataSvozu.zbyvaKH);
-            localStorage.setItem('geis_historie', JSON.stringify(historieNakladek));
-        }
-
-        // Spuštění a načtení dat při startu aplikace
-        window.onload = function() {
-            if(localStorage.getItem('geis_zbyvaFP')) {
-                dataSvozu.zbyvaFP = parseInt(localStorage.getItem('geis_zbyvaFP'));
-                dataSvozu.zbyvaKH = parseInt(localStorage.getItem('geis_zbyvaKH'));
-                historieNakladek = JSON.parse(localStorage.getItem('geis_historie')) || [];
-            }
-            aktualizovatUI();
-        };
-
-        // REGISTRACE SERVICE WORKERU (Zajišťuje offline běh PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js')
-                    .then(reg => console.log('Service Worker úspěšně registrován.', reg))
-                    .catch(err => console.log('Registrace Service Workera selhala.', err));
-            });
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
