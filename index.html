@@ -2,77 +2,81 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Geis - Dispečink</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hidden-tab { display: none; } .active-tab { display: block; }
-        body { -webkit-tap-highlight-color: transparent; }
-    </style>
 </head>
-<body class="bg-gray-50 font-sans pb-24">
+<body class="bg-gray-100 font-sans pb-24">
 
-    <header class="bg-white p-4 shadow-sm sticky top-0 z-10 border-b-4 border-[#96c11f]">
-        <div class="flex items-center justify-between mb-2">
-            <img src="geis-logo.png" class="h-6" alt="Geis">
-            <button onclick="showCalendar()" class="text-slate-800">📅</button>
+    <header class="bg-white shadow-sm p-4 border-b-4 border-[#96c11f]">
+        <div class="flex justify-between items-center mb-3">
+            <img src="geis-logo.png" class="h-8" alt="Geis">
+            <input type="date" id="calendarPicker" class="hidden" onchange="jumpToDate(this.value)">
+            <button onclick="document.getElementById('calendarPicker').showPicker()" class="text-2xl">📅</button>
         </div>
-        <div class="flex items-center justify-between">
-            <button onclick="changeDay(-1)" class="font-bold text-lg px-2">◀</button>
-            <div class="text-center">
-                <h1 class="text-xs font-bold uppercase tracking-wider" id="currentDateDisplay"></h1>
-            </div>
-            <button onclick="changeDay(1)" class="font-bold text-lg px-2">▶</button>
+        <div class="flex justify-between items-center">
+            <button onclick="changeDay(-1)" class="bg-gray-200 px-4 py-1 rounded font-bold">◀</button>
+            <h2 id="dateDisplay" class="font-bold text-slate-800">---</h2>
+            <button onclick="changeDay(1)" class="bg-gray-200 px-4 py-1 rounded font-bold">▶</button>
         </div>
     </header>
 
-    <main id="tab-counter" class="active-tab p-4 space-y-4">
-        <button onclick="undoLastAction()" class="w-full bg-slate-200 text-slate-800 text-xs font-bold py-1 rounded">↶ Zpět (Undo poslední akce)</button>
-        
-        <div id="activeCountersList" class="grid grid-cols-2 gap-3"></div>
+    <main class="p-4">
+        <button onclick="undo()" class="w-full bg-red-100 text-red-700 py-2 rounded font-bold mb-4 text-sm">↶ Zpět (Undo)</button>
+        <div id="grid" class="grid grid-cols-2 gap-3"></div>
     </main>
 
+    <div id="modal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl w-full p-4 max-h-[80vh] overflow-y-auto">
+            <h3 id="modalTitle" class="text-lg font-black mb-4">---</h3>
+            <div id="historyList" class="space-y-2"></div>
+            <button onclick="document.getElementById('modal').classList.add('hidden')" class="mt-4 w-full bg-gray-800 text-white py-2 rounded">Zavřít</button>
+        </div>
+    </div>
+
     <script>
-        let viewDate = new Date(); // Datum, které právě prohlížíme
+        let viewDate = new Date();
 
-        function changeDay(offset) {
-            viewDate.setDate(viewDate.getDate() + offset);
-            updateHeader();
-            renderCounterTab();
+        function updateDateDisplay() {
+            document.getElementById('dateDisplay').textContent = viewDate.toLocaleDateString('cs-CZ');
         }
 
-        function updateHeader() {
-            document.getElementById('currentDateDisplay').textContent = viewDate.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' });
+        function changeDay(delta) {
+            viewDate.setDate(viewDate.getDate() + delta);
+            updateDateDisplay();
+            render();
         }
 
-        function undoLastAction() {
-            let pickups = JSON.parse(localStorage.getItem('pickups')) || [];
-            if (pickups.length > 0) {
-                if(confirm("Opravdu smazat poslední zapsanou nakládku?")) {
-                    pickups.pop();
-                    localStorage.setItem('pickups', JSON.stringify(pickups));
-                    renderCounterTab();
-                }
+        function jumpToDate(dateStr) {
+            viewDate = new Date(dateStr);
+            updateDateDisplay();
+            render();
+        }
+
+        function undo() {
+            let p = JSON.parse(localStorage.getItem('pickups') || '[]');
+            if(p.length > 0) {
+                p.pop();
+                localStorage.setItem('pickups', JSON.stringify(p));
+                render();
             }
         }
 
-        // Editace nakládky v historii:
-        // V renderModalContent upravím historii tak, aby každý řádek měl tlačítko "Smazat/Editovat"
-        // Po kliknutí na něj se hodnoty předvyplní do formuláře.
-
-        function deletePickup(pickupId) {
-            let pickups = JSON.parse(localStorage.getItem('pickups')) || [];
-            pickups = pickups.filter(p => p.id !== pickupId);
-            localStorage.setItem('pickups', JSON.stringify(pickups));
-            renderCounterTab();
-            renderModalContent();
+        function deleteRecord(id) {
+            let p = JSON.parse(localStorage.getItem('pickups') || '[]');
+            p = p.filter(item => item.id !== id);
+            localStorage.setItem('pickups', JSON.stringify(p));
+            render();
+            // Po smazání aktualizuj modál
+            showModal(currentTarget);
         }
 
-        // Vykreslení historie v detailu s tlačítkem pro smazání:
-        // historyHtml += `<button onclick="deletePickup('${p.id}')" class="text-red-500">✕</button>`;
+        function render() {
+            // Logika vykreslení mřížky podle viewDate
+            // ... (zde bude kód pro zobrazení dlaždic)
+        }
 
-        updateHeader();
-        renderCounterTab();
+        updateDateDisplay();
     </script>
 </body>
 </html>
