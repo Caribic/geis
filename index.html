@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Svoz Palet</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden-tab { display: none; }
+        .active-tab { display: block; }
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased text-gray-900 pb-20">
+
+    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold">Přehled Svozů</h1>
+            <p class="text-xs opacity-80" id="currentDateDisplay"></p>
+        </div>
+        <button onclick="clearData()" class="text-xs bg-red-500 px-2 py-1 rounded">Smazat data</button>
+    </header>
+
+    <main id="tab-daily" class="active-tab p-4 space-y-4">
+        
+        <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800 mb-3">Nový záznam</h2>
+            
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="text-xs text-gray-500">Zákazník</label>
+                    <select id="selectCustomer" class="w-full bg-gray-100 rounded-lg p-2 mt-1 text-sm outline-none">
+                        <option value="WIMEX">WIMEX</option>
+                        <option value="ALBI">ALBI</option>
+                        <option value="DRANA">DRANA</option>
+                        <option value="V-GARDEN">V-GARDEN</option>
+                        <option value="GARLAND">GARLAND</option>
+                        <option value="MEKR´S">MEKR´S</option>
+                        <option value="HR. PEKÁRNA">HR. PEKÁRNA</option>
+                        <option value="SECO">SECO</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500">Řidič</label>
+                    <select id="selectDriver" class="w-full bg-gray-100 rounded-lg p-2 mt-1 text-sm outline-none">
+                        <option value="PUTERKA">PUTERKA</option>
+                        <option value="DOLEŽAL">DOLEŽAL</option>
+                        <option value="VRABEC">VRABEC</option>
+                        <option value="ŠMŮLA">ŠMŮLA</option>
+                        <option value="KINDA">KINDA</option>
+                        <option value="KLEIN">KLEIN</option>
+                        <option value="BAŽANT">BAŽANT</option>
+                        <option value="VAŇÁTKO">VAŇÁTKO</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="bg-blue-50 rounded-lg p-2 text-center">
+                    <span class="text-xs font-bold text-blue-800">Palety (FP)</span>
+                    <input type="number" id="inputFP" value="0" min="0" class="w-full text-center text-2xl font-bold bg-transparent mt-1 outline-none">
+                </div>
+                <div class="bg-orange-50 rounded-lg p-2 text-center">
+                    <span class="text-xs font-bold text-orange-800">Půlpalety (KH)</span>
+                    <input type="number" id="inputKH" value="0" min="0" class="w-full text-center text-2xl font-bold bg-transparent mt-1 outline-none">
+                </div>
+            </div>
+
+            <button onclick="saveRecord()" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg active:bg-blue-700 shadow-md">
+                Uložit záznam
+            </button>
+        </div>
+
+        <h3 class="font-bold text-gray-700 mt-6 mb-2">Dnešní svozy</h3>
+        <div id="dailyList" class="space-y-2"></div>
+    </main>
+
+    <main id="tab-stats" class="hidden-tab p-4 space-y-4">
+        
+        <div class="flex space-x-2 mb-4">
+            <button onclick="renderStats('week')" class="flex-1 bg-blue-100 text-blue-800 py-2 rounded-lg font-bold shadow-sm">Tento týden</button>
+            <button onclick="renderStats('month')" class="flex-1 bg-white text-gray-700 py-2 rounded-lg font-bold shadow-sm border">Tento měsíc</button>
+        </div>
+
+        <h2 class="text-lg font-bold text-gray-800" id="statsTitle">Statistiky</h2>
+        
+        <div id="statsContent" class="space-y-4"></div>
+
+    </main>
+
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 p-3 flex justify-around shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] pb-safe">
+        <button onclick="switchTab('daily')" class="text-blue-600 flex flex-col items-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            <span class="text-xs mt-1 font-medium">Svoz</span>
+        </button>
+        <button onclick="switchTab('stats')" class="text-gray-400 flex flex-col items-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="text-xs mt-1 font-medium">Statistiky</span>
+        </button>
+    </nav>
+
+    <script>
+        // Zobrazení dnešního data
+        const today = new Date();
+        document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString('cs-CZ');
+
+        // Ukládání dat do LocalStorage
+        function saveRecord() {
+            const customer = document.getElementById('selectCustomer').value;
+            const driver = document.getElementById('selectDriver').value;
+            const fp = parseInt(document.getElementById('inputFP').value);
+            const kh = parseInt(document.getElementById('inputKH').value);
+
+            if(fp === 0 && kh === 0) { alert("Zadej alespoň nějaké palety!"); return; }
+
+            const record = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                customer, driver, fp, kh
+            };
+
+            let data = JSON.parse(localStorage.getItem('svozyData')) || [];
+            data.push(record);
+            localStorage.setItem('svozyData', JSON.stringify(data));
+
+            // Reset formuláře
+            document.getElementById('inputFP').value = '0';
+            document.getElementById('inputKH').value = '0';
+            
+            renderDaily();
+        }
+
+        // Vykreslení dnešních záznamů
+        function renderDaily() {
+            const data = JSON.parse(localStorage.getItem('svozyData')) || [];
+            const list = document.getElementById('dailyList');
+            list.innerHTML = '';
+            
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const todayData = data.filter(r => r.date.split('T')[0] === todayStr).reverse();
+
+            if (todayData.length === 0) {
+                list.innerHTML = '<p class="text-sm text-gray-500">Zatím žádné záznamy pro dnešní den.</p>';
+                return;
+            }
+
+            todayData.forEach(r => {
+                list.innerHTML += `
+                <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-sm">${r.customer} <span class="text-gray-400 font-normal text-xs ml-1">(${r.driver})</span></p>
+                        <p class="text-xs text-gray-500">${new Date(r.date).toLocaleTimeString('cs-CZ', {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">FP: ${r.fp}</span>
+                        <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">KH: ${r.kh}</span>
+                    </div>
+                </div>`;
+            });
+        }
+
+        // Statistiky
+        function renderStats(period) {
+            const data = JSON.parse(localStorage.getItem('svozyData')) || [];
+            const now = new Date();
+            let filteredData = [];
+
+            if (period === 'week') {
+                document.getElementById('statsTitle').textContent = "Statistiky: Tento týden";
+                const firstDayOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+                firstDayOfWeek.setHours(0,0,0,0);
+                filteredData = data.filter(r => new Date(r.date) >= firstDayOfWeek);
+            } else {
+                document.getElementById('statsTitle').textContent = "Statistiky: Tento měsíc";
+                const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                filteredData = data.filter(r => new Date(r.date) >= firstDayOfMonth);
+            }
+
+            // Agregace podle Zákazníků
+            let customers = {};
+            let drivers = {};
+
+            filteredData.forEach(r => {
+                // Zákazníci
+                if(!customers[r.customer]) customers[r.customer] = { fp: 0, kh: 0 };
+                customers[r.customer].fp += r.fp;
+                customers[r.customer].kh += r.kh;
+
+                // Řidiči (kolikrát jeli a pro koho)
+                if(!drivers[r.driver]) drivers[r.driver] = { trips: 0, customers: new Set(), totalPallets: 0 };
+                drivers[r.driver].trips += 1;
+                drivers[r.driver].customers.add(r.customer);
+                drivers[r.driver].totalPallets += (r.fp + (r.kh * 0.5)); // přepočet na celé palety
+            });
+
+            let content = document.getElementById('statsContent');
+            let html = `<div class="bg-white p-4 rounded-xl shadow-sm border mb-4">
+                        <h3 class="font-bold text-gray-700 border-b pb-2 mb-2">Podle zákazníků</h3>`;
+            
+            for (const [cust, val] of Object.entries(customers)) {
+                html += `<div class="flex justify-between py-1 text-sm border-b border-gray-50 border-dashed">
+                            <span>${cust}</span>
+                            <span class="font-medium">FP: ${val.fp} | KH: ${val.kh}</span>
+                         </div>`;
+            }
+            html += `</div>`;
+
+            html += `<div class="bg-white p-4 rounded-xl shadow-sm border">
+                        <h3 class="font-bold text-gray-700 border-b pb-2 mb-2">Vytížení řidičů a vozů</h3>`;
+            
+            for (const [drv, val] of Object.entries(drivers)) {
+                let places = Array.from(val.customers).join(', ');
+                html += `<div class="mb-3 border-b border-gray-50 pb-2">
+                            <div class="flex justify-between font-bold text-sm">
+                                <span>${drv}</span>
+                                <span class="text-blue-600">${val.totalPallets} palet celkem</span>
+                            </div>
+                            <p class="text-xs text-gray-500">Počet svozů: ${val.trips}</p>
+                            <p class="text-xs text-gray-400">Jezdil pro: ${places}</p>
+                         </div>`;
+            }
+            html += `</div>`;
+
+            content.innerHTML = html || "<p class='text-sm text-gray-500'>V tomto období nejsou žádná data.</p>";
+        }
+
+        // Přepínání záložek
+        function switchTab(tabId) {
+            document.getElementById('tab-daily').classList.replace('active-tab', 'hidden-tab');
+            document.getElementById('tab-stats').classList.replace('active-tab', 'hidden-tab');
+            document.getElementById(`tab-${tabId}`).classList.replace('hidden-tab', 'active-tab');
+            
+            // Styl tlačítek v navigaci
+            const btns = document.querySelectorAll('nav button');
+            btns.forEach(b => { b.classList.remove('text-blue-600'); b.classList.add('text-gray-400'); });
+            event.currentTarget.classList.remove('text-gray-400');
+            event.currentTarget.classList.add('text-blue-600');
+
+            if (tabId === 'stats') renderStats('week');
+        }
+
+        // Smazání všech dat (jen pro vývoj/nouzi)
+        function clearData() {
+            if(confirm("Opravdu smazat VŠECHNA zaznamenaná data?")) {
+                localStorage.removeItem('svozyData');
+                renderDaily();
+            }
+        }
+
+        // Zaregistrování Service Workeru (pro offline PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // Počáteční načtení
+        renderDaily();
+    </script>
+</body>
+</html>
