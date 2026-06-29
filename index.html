@@ -23,7 +23,6 @@
             <h1 class="text-lg font-bold tracking-tight">Dispečink Svozů</h1>
             <p class="text-[11px] text-slate-400" id="currentDateDisplay"></p>
         </div>
-        <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Mřížka</span>
     </header>
 
     <main id="tab-counter" class="active-tab p-4 space-y-5">
@@ -52,7 +51,7 @@
         </div>
 
         <div>
-            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-2.5">Dnešní aktivní sledování odběru</h3>
+            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-2.5">Dnešní active sledování odběru</h3>
             <div id="activeCountersList" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 </div>
         </div>
@@ -141,25 +140,21 @@
     </nav>
 
     <script>
-        // Výchozí seznamy dat zachovávající přesné zadání
         const defaultCustomers = ["WIMEX","ALBI","DRANA","V-GARDEN","GARLAND","HP TRONIC","SHIPMALL","KRPA","TAMADEX","Z-TRADE","HOBRA ŠKOLNÍK","PENTA","FOMEI","SKOLIL KOMPOZIT","VETRO-PLUS","HR.PEKÁRNA","VOR","ITADECO","MEKR´S","SECO","COROLL","DETECHA","NUTRICIUS","KOMAP","ELPRIM","FANTON","TCM POINT","HORNBACH"];
         const defaultDrivers = ["KINDA","DVOŘÁK","PUTERKA","VRABEC","DOLEŽAL","KŘÍŽ","DUŽDA","VAŇÁTKO","DAVID","BAŽANT","KLEIN","PARTEL","SVYATYLO","HAVEL","KOCOUREK","DRAPÁK","RICHTER","BÁRTA"];
 
-        let currentTargetId = null; // Uchovává ID právě rozkliknuté dlaždice
+        let currentTargetId = null;
 
-        // Inicializace LocalStorage
         if (!localStorage.getItem('customers')) localStorage.setItem('customers', JSON.stringify(defaultCustomers));
         if (!localStorage.getItem('drivers')) localStorage.setItem('drivers', JSON.stringify(defaultDrivers));
         if (!localStorage.getItem('dailyTargets')) localStorage.setItem('dailyTargets', JSON.stringify([]));
         if (!localStorage.getItem('pickups')) localStorage.setItem('pickups', JSON.stringify([]));
 
-        // Nastavení dnešního data v záhlaví
         const today = new Date();
         document.getElementById('currentDateDisplay').textContent = today.toLocaleDateString('cs-CZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
         const getTodayStr = () => new Date().toISOString().split('T')[0];
 
-        // 1. ZADÁNÍ DENNÍHO CÍLE SVOZU
         function createDailyTarget() {
             const customer = document.getElementById('targetCustomer').value;
             const fp = parseInt(document.getElementById('targetFP').value) || 0;
@@ -183,7 +178,6 @@
             renderCounterTab();
         }
 
-        // 2. OTEVŘENÍ DETAILU PO ROZKLIKNUTÍ DLAŽDICE
         function openDetails(targetId) {
             currentTargetId = targetId;
             document.getElementById('detailsModal').classList.remove('hidden');
@@ -197,7 +191,6 @@
             document.getElementById('detailsModal').classList.add('hidden');
         }
 
-        // 3. VYKRESLENÍ OBSAHU UVNITŘ DETAILNÍHO OKNA
         function renderModalContent() {
             if (!currentTargetId) return;
 
@@ -222,11 +215,9 @@
             document.getElementById('modalRemainingFP').textContent = remainingFP;
             document.getElementById('modalRemainingKH').textContent = remainingKH;
             
-            // Barvy stavových polí v detailu
             document.getElementById('modalFPBox').className = remainingFP > 0 ? "text-center p-3 rounded-xl bg-blue-50 text-blue-900 border border-blue-100" : "text-center p-3 rounded-xl bg-gray-100 text-gray-400 border border-gray-200";
             document.getElementById('modalKHBox').className = remainingKH > 0 ? "text-center p-3 rounded-xl bg-orange-50 text-orange-900 border border-orange-100" : "text-center p-3 rounded-xl bg-gray-100 text-gray-400 border border-gray-200";
 
-            // Vykreslení formuláře zápisu (skryje se při splnění cíle)
             const formContainer = document.getElementById('modalFormContainer');
             if (!isDone) {
                 let driverOptions = driversList.map(d => `<option value="${d}">${d}</option>`).join('');
@@ -256,7 +247,6 @@
                     </div>`;
             }
 
-            // Historie nakládek v detailu
             const historyContainer = document.getElementById('modalHistoryContainer');
             let historyHtml = '';
             tPickups.forEach(p => {
@@ -269,7 +259,6 @@
             historyContainer.innerHTML = historyHtml || '<p class="text-xs text-gray-400 italic text-center py-2">Dnes zatím žádný řidič neodebíral.</p>';
         }
 
-        // 4. ZÁPIS ODVOZU Z MODÁLNÍHO OKNA
         function saveModalPickup(targetId) {
             const driver = document.getElementById('modalDriverSelect').value;
             const fp = parseInt(document.getElementById('modalPickupFP').value) || 0;
@@ -288,11 +277,10 @@
             });
             localStorage.setItem('pickups', JSON.stringify(pickups));
             
-            renderCounterTab();  // Překreslí dláždice na pozadí
-            renderModalContent(); // Aktualizuje čísla v otevřeném okně
+            renderCounterTab();
+            renderModalContent();
         }
 
-        // 5. VYKRESLENÍ HLAVNÍCH DLÁŽDIC (ZÁKAZNÍCI)
         function renderCounterTab() {
             const targets = JSON.parse(localStorage.getItem('dailyTargets')) || [];
             const pickups = JSON.parse(localStorage.getItem('pickups')) || [];
@@ -318,7 +306,6 @@
 
                 let tileHtml = '';
                 if (isDone) {
-                    // Hotová dláždice - čistě minimalistická zelená
                     tileHtml = `
                     <div onclick="openDetails('${t.id}')" class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3 shadow-sm active:scale-95 transition-all cursor-pointer flex flex-col justify-between min-h-[105px]">
                         <div class="font-bold text-emerald-950 text-sm leading-tight break-words flex items-start justify-between gap-1">
@@ -330,7 +317,6 @@
                         </div>
                     </div>`;
                 } else {
-                    // Aktivní dláždice - zobrazuje zbývající palety
                     tileHtml = `
                     <div onclick="openDetails('${t.id}')" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hover:border-gray-300 active:scale-95 transition-all cursor-pointer flex flex-col justify-between min-h-[105px]">
                         <div class="font-bold text-gray-800 text-sm leading-tight break-words">${t.customer}</div>
@@ -350,7 +336,6 @@
             });
         }
 
-        // 6. STATISTIKY (Týden / Měsíc)
         function renderStats(period) {
             const btnWeek = document.getElementById('btn-stat-week');
             const btnMonth = document.getElementById('btn-stat-month');
@@ -433,7 +418,6 @@
             content.innerHTML = html;
         }
 
-        // 7. NASTAVENÍ A SPRÁVA SEZNAMŮ
         function renderSettingsTab() {
             const custs = JSON.parse(localStorage.getItem('customers')) || [];
             const drvs = JSON.parse(localStorage.getItem('drivers')) || [];
@@ -487,7 +471,6 @@
             }
         }
 
-        // NAVIGATION SWITCHER (PŘEPÍNÁNÍ ZÁLOŽEK)
         function switchTab(tabId, event) {
             document.getElementById('tab-counter').className = 'hidden-tab';
             document.getElementById('tab-stats').className = 'hidden-tab';
@@ -515,7 +498,6 @@
             if(tabId === 'settings') renderSettingsTab();
         }
 
-        // PRVOTNÍ NAČTENÍ PŘI SPUŠTĚNÍ
         renderSettingsTab();
         renderCounterTab();
     </script>
