@@ -3,72 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geis - Dispečink</title>
+    <title>Geis Dispečink</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
 
     <header class="bg-white p-4 shadow rounded mb-4 border-b-4 border-[#96c11f]">
-        <div class="flex justify-between items-center mb-2">
-            <h1 class="font-black">Geis Dispečink</h1>
-            <button onclick="document.getElementById('datePicker').showPicker()">📅</button>
-            <input type="date" id="datePicker" class="hidden" onchange="jumpToDate(this.value)">
-        </div>
-        <div class="flex justify-between items-center">
-            <button onclick="changeDay(-1)" class="bg-gray-200 px-3 py-1 rounded">◀</button>
-            <span id="currentDateDisplay" class="font-bold"></span>
-            <button onclick="changeDay(1)" class="bg-gray-200 px-3 py-1 rounded">▶</button>
+        <h1 class="font-black text-lg">Geis Dispečink</h1>
+        <div class="flex justify-between mt-2">
+            <button onclick="changeDay(-1)" class="bg-gray-200 px-4 py-1 rounded">◀</button>
+            <span id="dateDisplay" class="font-bold"></span>
+            <button onclick="changeDay(1)" class="bg-gray-200 px-4 py-1 rounded">▶</button>
         </div>
     </header>
 
-    <button onclick="undoLastAction()" class="w-full bg-red-100 text-red-700 py-2 rounded mb-4 font-bold text-sm">↶ ZPĚT (Undo)</button>
-
-    <div id="activeCountersList" class="grid grid-cols-2 gap-3"></div>
+    <div id="grid" class="grid grid-cols-2 gap-3"></div>
 
     <script>
-        let currentDate = new Date();
+        // 1. STAV APLIKACE
+        let state = {
+            currentDate: new Date(),
+            pickups: JSON.parse(localStorage.getItem('pickups') || '[]')
+        };
 
-        // 1. ZÁKLADNÍ FUNKCE PRO DATUM
-        function updateDateDisplay() {
-            document.getElementById('currentDateDisplay').textContent = currentDate.toLocaleDateString('cs-CZ');
+        // 2. FUNKCE PRO VYKRESLENÍ (Tato funkce teď existuje)
+        function renderCounterTab() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '<div class="bg-white p-4 rounded shadow">Zákazník test (Datum: ' + state.currentDate.toLocaleDateString() + ')</div>';
+            document.getElementById('dateDisplay').textContent = state.currentDate.toLocaleDateString('cs-CZ');
+            console.log("Vykresleno dne:", state.currentDate);
+        }
+
+        // 3. NAVIGACE
+        function changeDay(delta) {
+            state.currentDate.setDate(state.currentDate.getDate() + delta);
             renderCounterTab();
         }
 
-        function changeDay(offset) {
-            currentDate.setDate(currentDate.getDate() + offset);
-            updateDateDisplay();
-        }
-
-        function jumpToDate(dateStr) {
-            currentDate = new Date(dateStr);
-            updateDateDisplay();
-        }
-
-        // 2. FUNKCE PRO "ZPĚT"
-        function undoLastAction() {
-            let pickups = JSON.parse(localStorage.getItem('pickups') || '[]');
-            if (pickups.length > 0) {
-                if(confirm("Smazat poslední záznam?")) {
-                    pickups.pop();
-                    localStorage.setItem('pickups', JSON.stringify(pickups));
-                    renderCounterTab();
-                }
-            }
-        }
-
-        // 3. HLAVNÍ RENDER FUNKCE (Tato zde nesmí chybět!)
-        function renderCounterTab() {
-            const container = document.getElementById('activeCountersList');
-            container.innerHTML = '<p class="text-gray-500">Načítám data...</p>';
-            
-            // Tady by byla logika pro zobrazení vašich zákazníků
-            // Pro začátek jen test:
-            container.innerHTML = '<div class="bg-white p-4 rounded shadow">Zákazník test</div>';
-            console.log("Renderování proběhlo");
-        }
-
-        // Inicializace
-        updateDateDisplay();
+        // 4. SPUŠTĚNÍ PO NAČTENÍ
+        window.onload = function() {
+            renderCounterTab();
+        };
     </script>
 </body>
 </html>
