@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
@@ -21,6 +20,14 @@
 
     <header class="bg-white text-slate-900 p-4 shadow-sm sticky top-0 z-10 border-b-4 border-[#96c11f] flex justify-between items-center">
         <div class="flex items-center gap-3">
+            <!-- Tlačítko Zpět (zobrazuje se pouze, pokud nejsme na hlavní mřížce) -->
+            <button id="backButton" onclick="handleBack()" class="hidden items-center justify-center bg-gray-100 hover:bg-gray-200 text-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all gap-1 shadow-sm active:scale-95">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                <span>Zpět</span>
+            </button>
+
             <img src="geis-logo.png" alt="Geis Logo" class="h-8 w-auto object-contain" onerror="this.style.display='none'">
             <div class="leading-tight">
                 <h1 class="text-lg font-black tracking-tight text-slate-800 uppercase">Geis Svozy</h1>
@@ -55,9 +62,9 @@
         </div>
 
         <div>
-            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-2.5">Dnešní aktivní sledování odběru</h3>
+            <h3 class="font-bold text-gray-400 text-xs uppercase tracking-wider mb-2.5">Dnešní active sledování odběru</h3>
             <div id="activeCountersList" class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                </div>
+            </div>
         </div>
     </main>
 
@@ -182,17 +189,14 @@
             renderCounterTab();
         }
 
+        // Změněno na hash směrování
         function openDetails(targetId) {
-            currentTargetId = targetId;
-            document.getElementById('detailsModal').classList.remove('hidden');
-            document.getElementById('detailsModal').classList.add('flex');
-            renderModalContent();
+            window.location.hash = `counter/details/${targetId}`;
         }
 
+        // Změněno na hash směrování
         function closeDetails() {
-            currentTargetId = null;
-            document.getElementById('detailsModal').classList.remove('flex');
-            document.getElementById('detailsModal').classList.add('hidden');
+            window.location.hash = 'counter';
         }
 
         function renderModalContent() {
@@ -219,7 +223,6 @@
             document.getElementById('modalRemainingFP').textContent = remainingFP;
             document.getElementById('modalRemainingKH').textContent = remainingKH;
             
-            // Barevné podbarvení uvnitř modálu na základě zbývajících palet
             document.getElementById('modalFPBox').className = remainingFP > 0 ? "text-center p-3 rounded-xl bg-gray-50 text-slate-800 border border-[#96c11f]" : "text-center p-3 rounded-xl bg-gray-100 text-gray-400 border border-gray-200";
             document.getElementById('modalKHBox').className = remainingKH > 0 ? "text-center p-3 rounded-xl bg-gray-50 text-slate-800 border border-[#96c11f]" : "text-center p-3 rounded-xl bg-gray-100 text-gray-400 border border-gray-200";
 
@@ -476,7 +479,14 @@
             }
         }
 
+        // Tlačítko dole v navigaci nyní pouze změní Hash v URL
         function switchTab(tabId, event) {
+            if (event) event.preventDefault();
+            window.location.hash = tabId;
+        }
+
+        // Interní vykreslení tabů na základě stavu
+        function setActiveTab(tabId) {
             document.getElementById('tab-counter').className = 'hidden-tab';
             document.getElementById('tab-stats').className = 'hidden-tab';
             document.getElementById('tab-settings').className = 'hidden-tab';
@@ -490,12 +500,10 @@
             const btns = document.querySelectorAll('nav button');
             btns.forEach(b => { b.classList.remove('text-[#96c11f]'); b.classList.add('text-gray-400'); });
             
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.remove('text-gray-400');
-                event.currentTarget.classList.add('text-[#96c11f]');
-            } else {
-                document.getElementById(`nav-${tabId}`).classList.remove('text-gray-400');
-                document.getElementById(`nav-${tabId}`).classList.add('text-[#96c11f]');
+            const targetNavBtn = document.getElementById(`nav-${tabId}`);
+            if (targetNavBtn) {
+                targetNavBtn.classList.remove('text-gray-400');
+                targetNavBtn.classList.add('text-[#96c11f]');
             }
 
             if(tabId === 'counter') renderCounterTab();
@@ -503,8 +511,62 @@
             if(tabId === 'settings') renderSettingsTab();
         }
 
+        // Router, který naslouchá na změny v URL (zajišťuje správný zpětný chod)
+        function handleRouting() {
+            const hash = window.location.hash || '#counter';
+            const backBtn = document.getElementById('backButton');
+            
+            // Pokud hash neobsahuje detaily, skryjeme modální okno
+            if (!hash.startsWith('#counter/details/')) {
+                currentTargetId = null;
+                document.getElementById('detailsModal').classList.remove('flex');
+                document.getElementById('detailsModal').classList.add('hidden');
+            }
+
+            if (hash === '#counter' || hash === '') {
+                setActiveTab('counter');
+                backBtn.classList.remove('flex');
+                backBtn.classList.add('hidden');
+            } else if (hash === '#stats') {
+                setActiveTab('stats');
+                backBtn.classList.remove('hidden');
+                backBtn.classList.add('flex');
+            } else if (hash === '#settings') {
+                setActiveTab('settings');
+                backBtn.classList.remove('hidden');
+                backBtn.classList.add('flex');
+            } else if (hash.startsWith('#counter/details/')) {
+                // Modální okno se chová jako pod-stránka mřížky
+                setActiveTab('counter');
+                backBtn.classList.remove('hidden');
+                backBtn.classList.add('flex');
+                
+                const targetId = hash.split('/').pop();
+                currentTargetId = targetId;
+                document.getElementById('detailsModal').classList.remove('hidden');
+                document.getElementById('detailsModal').classList.add('flex');
+                renderModalContent();
+            }
+        }
+
+        // Obsluha tlačítka Zpět
+        function handleBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.hash = 'counter';
+            }
+        }
+
+        // Inicializace směrování a naplnění nastavení
         renderSettingsTab();
-        renderCounterTab();
+        
+        window.addEventListener('hashchange', handleRouting);
+        if (!window.location.hash) {
+            window.location.hash = 'counter';
+        } else {
+            handleRouting();
+        }
     </script>
 </body>
 </html>
