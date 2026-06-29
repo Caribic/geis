@@ -3,77 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Geis - Dispečink Svozů</title>
+    <title>Geis Svozy</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-    </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900 pb-24">
+<body class="bg-gray-50 font-sans pb-10">
 
-    <header class="bg-white p-4 shadow-sm border-b-4 border-[#96c11f] flex items-center gap-3">
+    <header class="bg-white p-4 shadow-sm border-b-4 border-[#96c11f]">
         <h1 class="text-lg font-black text-slate-800 uppercase">Geis Svozy</h1>
     </header>
 
     <main class="p-4 space-y-5">
         <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
             <h2 class="text-xs font-bold text-gray-400 uppercase mb-3">Aktivovat zákazníka</h2>
-            <select id="targetCustomer" class="w-full bg-gray-50 border rounded-lg p-2 mb-2"></select>
+            <select id="targetCustomer" class="w-full bg-gray-50 border rounded-lg p-2 mb-2">
+                <option>WIMEX</option><option>SHIPMALL</option><option>ALBI</option><option>DRANA</option>
+                <option>V-GARDEN</option><option>GARLAND</option><option>HP TRONIC</option><option>KRPA</option>
+            </select>
             <div class="grid grid-cols-2 gap-2 mb-3">
                 <input type="number" id="targetFP" placeholder="Cíl FP" class="border rounded p-2 text-center font-bold">
                 <input type="number" id="targetKH" placeholder="Cíl KH" class="border rounded p-2 text-center font-bold">
             </div>
             <button onclick="createDailyTarget()" class="w-full bg-[#96c11f] font-bold py-2.5 rounded-lg">Přidat na přehled</button>
         </div>
+
         <div id="activeCountersList" class="grid grid-cols-2 gap-3"></div>
     </main>
 
     <div id="detailsModal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden">
-            <div class="bg-slate-800 p-4 text-white">
-                <h4 id="modalCustomerName" class="text-xl font-black uppercase">---</h4>
-                <div id="modalTargetInfo" class="mt-2 text-sm flex gap-2"></div>
+        <div class="bg-white rounded-2xl w-full max-w-md p-4">
+            <h4 id="modalCustomerName" class="text-xl font-black uppercase mb-4">---</h4>
+            <div id="modalForm" class="space-y-3">
+                <select id="ridicSelect" class="w-full border p-2 rounded">
+                    <option>KINDA</option><option>VRABEC</option><option>DAVID</option><option>BAŽANT</option>
+                </select>
+                <div class="flex gap-2">
+                    <input type="number" id="input-fp" placeholder="FP" class="w-1/2 border p-2 rounded">
+                    <input type="number" id="input-kh" placeholder="KH" class="w-1/2 border p-2 rounded">
+                </div>
+                <button onclick="potvrditNakladku()" class="w-full bg-[#96c11f] p-2 rounded font-bold">Potvrdit</button>
             </div>
-            <div class="p-4 overflow-y-auto">
-                <div id="modalHistoryContainer" class="space-y-2"></div>
-                <button onclick="closeDetails()" class="mt-4 w-full py-2 bg-gray-200 rounded-lg font-bold">Zavřít</button>
-            </div>
+            <div id="modalHistory" class="mt-4 max-h-60 overflow-y-auto"></div>
+            <button onclick="document.getElementById('detailsModal').classList.add('hidden')" class="mt-4 w-full text-gray-500 font-bold">Zavřít</button>
         </div>
     </div>
 
     <script>
-        // --- LOGIKA APLIKACE ---
         let dailyTargets = JSON.parse(localStorage.getItem('dailyTargets')) || [];
-        
-        function updateTarget(targetId) {
-            const index = dailyTargets.findIndex(t => t.id === targetId);
-            if (index !== -1) {
-                dailyTargets[index].targetFP = parseInt(document.getElementById('editFP').value) || 0;
-                dailyTargets[index].targetKH = parseInt(document.getElementById('editKH').value) || 0;
-                localStorage.setItem('dailyTargets', JSON.stringify(dailyTargets));
-                renderModalContent(targetId); // Překreslí po editaci
-            }
+        let currentTargetId = null;
+
+        function createDailyTarget() {
+            const customer = document.getElementById('targetCustomer').value;
+            const targetFP = parseInt(document.getElementById('targetFP').value) || 0;
+            const targetKH = parseInt(document.getElementById('targetKH').value) || 0;
+            const newTarget = { id: Date.now().toString(), customer, targetFP, targetKH, history: [] };
+            dailyTargets.push(newTarget);
+            saveAndRender();
         }
 
-        function renderModalContent(targetId) {
-            const t = dailyTargets.find(x => x.id === targetId);
-            document.getElementById('modalCustomerName').textContent = t.customer;
-            document.getElementById('modalTargetInfo').innerHTML = `
-                <div class="bg-slate-700 p-2 rounded">
-                    Plán: <input type="number" id="editFP" value="${t.targetFP}" class="w-12 text-black text-center"> FP / 
-                    <input type="number" id="editKH" value="${t.targetKH}" class="w-12 text-black text-center"> KH
-                    <button onclick="updateTarget('${t.id}')" class="ml-2 bg-[#96c11f] px-2 rounded font-bold text-black">Uložit</button>
-                </div>
-            `;
+        function saveAndRender() {
+            localStorage.setItem('dailyTargets', JSON.stringify(dailyTargets));
+            const list = document.getElementById('activeCountersList');
+            list.innerHTML = '';
+            dailyTargets.forEach(t => {
+                const zbyvaFP = t.targetFP - t.history.reduce((sum, h) => sum + h.fp, 0);
+                list.innerHTML += `<div onclick="openModal('${t.id}')" class="bg-white p-4 rounded-xl shadow border">
+                    <div class="font-bold uppercase">${t.customer}</div>
+                    <div class="text-sm">Zbývá FP: ${zbyvaFP}</div>
+                </div>`;
+            });
+        }
+
+        function openModal(id) {
+            currentTargetId = id;
+            document.getElementById('modalCustomerName').innerText = dailyTargets.find(t => t.id === id).customer;
             document.getElementById('detailsModal').classList.remove('hidden');
+            renderHistory();
         }
 
-        function closeDetails() {
-            document.getElementById('detailsModal').classList.add('hidden');
+        function potvrditNakladku() {
+            const t = dailyTargets.find(t => t.id === currentTargetId);
+            t.history.push({ 
+                ridic: document.getElementById('ridicSelect').value, 
+                fp: parseInt(document.getElementById('input-fp').value) || 0,
+                kh: parseInt(document.getElementById('input-kh').value) || 0 
+            });
+            saveAndRender();
+            renderHistory();
         }
 
-        // Zde by měly být i ostatní funkce: createDailyTarget, renderCounterTab atd.
-        // (Vše, co jste měl v app.js, vložte sem mezi tyto tagy <script> )
+        function renderHistory() {
+            const t = dailyTargets.find(t => t.id === currentTargetId);
+            const container = document.getElementById('modalHistory');
+            container.innerHTML = t.history.map((h, i) => `
+                <div class="flex justify-between border-b p-1 text-sm">
+                    ${h.ridic}: ${h.fp} FP | ${h.kh} KH
+                    <button onclick="storno(${i})" class="text-red-500">×</button>
+                </div>`).join('');
+        }
+
+        function storno(index) {
+            const t = dailyTargets.find(t => t.id === currentTargetId);
+            t.history.splice(index, 1);
+            saveAndRender();
+            renderHistory();
+        }
+
+        saveAndRender();
     </script>
 </body>
 </html>
